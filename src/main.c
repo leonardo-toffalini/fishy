@@ -12,6 +12,11 @@ float translate(float a, float b, float x, float pad) {
   return (x - a)/(b - a) * (800.0f - 2 * pad) + pad;
 }
 
+float translateY(float c, float d, float y, float pad) {
+  float t = (y - c)/(d - c) * (600.0f - 2 * pad) + pad;
+  return 600.0f - t;
+}
+
 double max(double *x, int n) {
   double res = x[0];
   for (int i = 0; i < n; i++)
@@ -32,15 +37,34 @@ void plot(double *xs, double *ys, int n) {
   float a = min(xs, n), b = max(xs, n);
   float c = min(ys, n), d = max(ys, n);
   float pad = 20.0f;
+  char buf[100];
 
   InitWindow(800, 600, "Raylib Plot");
   while (!WindowShouldClose()) {
-    for (int i = 0; i < n; i++)
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawLine(0, 600-pad, 800, 600-pad, RAYWHITE);
+    DrawLine(pad, 0, pad, 600, RAYWHITE);
+    for (int i = 0; i < n; i++) {
+      float screenx = translate(a, b, xs[i], pad);
+      float screeny = translateY(c, d, ys[i], pad);
+      if (i % 10 == 0) {
+        sprintf(buf, "%.2f", xs[i]);
+        DrawText(buf, screenx + 5, 600-pad + 6, 12, RAYWHITE);
+        DrawLine(screenx, 600-pad + 5, screenx, 600-pad - 5, RAYWHITE);
+      }
+      if (i % 10 == 0) {
+        sprintf(buf, "%lf", ys[i]);
+        DrawText(buf, pad, screeny, 12, RAYWHITE);
+        // DrawLine(screenx, 600-pad + 5, screenx, 600-pad - 5, RAYWHITE);
+      }
       DrawCircle(
-        translate(a, b, xs[i], pad),
-        translate(c, d, ys[i], pad),
-        1, RAYWHITE
+        screenx,
+        screeny,
+        1, BLUE
       );
+
+    }
 
     EndDrawing();
   }
