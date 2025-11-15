@@ -24,12 +24,14 @@ void solve_tridiag_jacobi(TridiagMat A_h, double *rhs_values, int n, double *sol
 void solve_tridiag_gs(TridiagMat A_h, double *rhs_values, int n, double *sol);
 void solve_blocktridiag_gs(BlockTridiagMat A_h, double *rhs_values, int n, double *sol);
 
-void solve_poisson1d(double a, double b, int n, RHSFunc1D f_rhs, double *sol) {
+void solve_poisson1d(double a, double b, double alpha, double beta, int n, RHSFunc1D f_rhs, double *sol) {
   double h = (b - a) / (n + 1);
-  double *rhs_values = malloc(n * sizeof(double));
+  double *rhs_values = malloc((n + 2) * sizeof(double));
+  rhs_values[0] = alpha;
+  rhs_values[n+1] = beta;
 
-  for (int i = 0; i < n; i++) {
-    double x = a + (i + 1) * h;
+  for (int i = 1; i < n + 1; i++) {
+    double x = a + i * h;
     rhs_values[i] = f_rhs(x);
   }
 
@@ -103,16 +105,18 @@ void solve_tridiag_jacobi(TridiagMat A_h, double *rhs_values, int n, double *sol
 }
 
 void solve_tridiag_gs(TridiagMat A_h, double *rhs_values, int n, double *sol) {
-  const int MAX_ITER = 20;
-  for (int i = 0; i < n; i++) sol[i] = 0.0;
+  const int MAX_ITER = 5000;
+  for (int i = 0; i < n+2; i++) sol[i] = 0.0;
+  sol[0] = rhs_values[0];
+  sol[n+1] = rhs_values[n+1];
 
   double inv_diag = 1 / A_h.diag;
 
   for (int iter = 0; iter < MAX_ITER; iter++) {
     // x_(k+1) = (L + D)^-1 (b - U x_k)
-    for (int i = 0; i < n; i++) {
-      double left = (i == 0) ? 0.0 : sol[i-1];
-      double right = (i == n - 1) ? 0.0 : sol[i+1];
+    for (int i = 1; i < n+1; i++) {
+      double left = sol[i-1];
+      double right = sol[i+1];
       sol[i] = inv_diag * (rhs_values[i] - A_h.lower * left - A_h.upper * right);
     }
   }
