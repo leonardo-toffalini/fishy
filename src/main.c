@@ -25,7 +25,16 @@ int main(void) {
   for (int i = 0; i < n + 2; i++)
     xs[i] = a + (i + 1) * h;
 
-  plot(xs, sol, n, ".-", ORANGE);
+  // plot(xs, sol, n + 2, ".-", ORANGE);
+
+  double ys[20 * 30];
+  for (int i = 0; i < 20; i++) {
+    for (int j = 0; j < 30; j++) {
+      ys[IDX(i, j, 20)] = i + j;
+    }
+  }
+
+  imshow(sol, 20, 30);
 
   return 0;
 }

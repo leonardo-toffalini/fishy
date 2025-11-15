@@ -2,6 +2,7 @@
 #define PLOT_H
 
 #include "../include/raylib.h"
+#include "colormap.h"
 #include <string.h>
 
 #define HEIGHT 900
@@ -88,6 +89,48 @@ void plot(double *xs, double *ys, int n, char *line_style, Color col) {
       DrawText(buf, pad + 8, screeny - 6, 12, RAYWHITE);
       DrawLine(pad - 5, screeny, pad + 5, screeny, RAYWHITE);
 
+    }
+
+    EndDrawing();
+  }
+  CloseWindow();
+}
+
+void imshow(double *ys, int n, int m) {
+  float ymin = min(ys, n * m), ymax = max(ys, n * m);
+  float pad = 20.0f;
+  float dx = (WIDTH - 2 * pad) / m;
+  float dy = (HEIGHT - 2 * pad) / n;
+  char buf[100];
+
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+
+  InitWindow(WIDTH, HEIGHT, "Raylib Scatter");
+  while (!WindowShouldClose()) {
+    BeginDrawing();
+    ClearBackground(BLACK);
+    DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, RAYWHITE);
+    DrawLine(pad, 0, pad, HEIGHT, RAYWHITE);
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < m; j++) {
+        float screenx = translateX(0, m, j, pad);
+        float screeny = translateY(0, n, i, pad);
+        Color c = get_color(ys[IDX(i, j, m)], ymin, ymax);
+        DrawRectangle(screenx, screeny, screenx + dx, screeny + dy, c);
+      }
+    }
+
+    for (int j = 1; j < m + 1; j++) {
+      float screenx = translateX(0, m, j, pad);
+      sprintf(buf, "%d", j);
+      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, RAYWHITE);
+      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, RAYWHITE);
+    }
+    for (int i = 1; i < n + 1; i++) {
+      float screeny = translateY(0, n, i, pad);
+      sprintf(buf, "%d", i);
+      DrawText(buf, pad + 8, screeny - 6, 12, RAYWHITE);
+      DrawLine(pad - 5, screeny, pad + 5, screeny, RAYWHITE);
     }
 
     EndDrawing();
