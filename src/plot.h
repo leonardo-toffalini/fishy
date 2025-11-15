@@ -2,9 +2,10 @@
 #define PLOT_H
 
 #include "../include/raylib.h"
+#include <string.h>
 
-#define HEIGHT 600
-#define WIDTH 800
+#define HEIGHT 900
+#define WIDTH 1600
 
 float translateX(float a, float b, float x, float pad) {
   return (x - a)/(b - a) * (WIDTH - 2 * pad) + pad;
@@ -31,7 +32,7 @@ double min(double *x, int n) {
   return res;
 }
 
-void plot_scatter(double *xs, double *ys, int n) {
+void plot(double *xs, double *ys, int n, char *line_style, Color col) {
   float a = min(xs, n), b = max(xs, n);
   float c = min(ys, n), d = max(ys, n);
   int num_ticks = 10;
@@ -47,6 +48,8 @@ void plot_scatter(double *xs, double *ys, int n) {
     yticks[i] = c + (i + 1) * ystride;
   }
 
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+
   InitWindow(WIDTH, HEIGHT, "Raylib Scatter");
   while (!WindowShouldClose()) {
     BeginDrawing();
@@ -54,13 +57,23 @@ void plot_scatter(double *xs, double *ys, int n) {
     DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, RAYWHITE);
     DrawLine(pad, 0, pad, HEIGHT, RAYWHITE);
     for (int i = 0; i < n; i++) {
-      float screenx = translateX(a, b, xs[i], pad);
-      float screeny = translateY(c, d, ys[i], pad);
-      DrawCircle(
-        screenx,
-        screeny,
-        1, BLUE
-      );
+      float screenx1 = translateX(a, b, xs[i], pad);
+      float screeny1 = translateY(c, d, ys[i], pad);
+
+      if ((strcmp(line_style, "-") == 0 || strcmp(line_style, ".-") == 0) && i + 1 < n) {
+        float screenx2 = translateX(a, b, xs[i+1], pad);
+        float screeny2 = translateY(c, d, ys[i+1], pad);
+
+        DrawLine(screenx1, screeny1, screenx2, screeny2, col);
+      }
+
+      if (strcmp(line_style, ".") == 0 || strcmp(line_style, ".-") == 0) {
+        DrawCircle(
+          screenx1,
+          screeny1,
+          2, col
+        );
+      }
 
     }
 
