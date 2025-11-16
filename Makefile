@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wextra -Wall
+CFLAGS = -Wextra -Wall -O3
 LINK = -L$(HOME)/Downloads/thirdparty/raylib-5.5_macos/lib \
 			 -L$(HOME)/Downloads/thirdparty/glfw-3.4.bin.MACOS/lib-arm64
 LIBS = -lraylib -lglfw3

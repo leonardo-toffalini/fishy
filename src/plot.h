@@ -179,6 +179,8 @@ void plot_surface(float *ys, int n, int m) {
     .mipmaps = 1
   };
 
+  Shader color_shader = LoadShader(NULL, "src/shaders/hot_cold.frag");
+
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;
 
@@ -188,6 +190,9 @@ void plot_surface(float *ys, int n, int m) {
   Texture2D texture = LoadTextureFromImage(img);
   Mesh mesh = GenMeshHeightmap(img, (Vector3){n * mesh_scale, 24, m * mesh_scale});
   Model model = LoadModelFromMesh(mesh);
+  for (int i = 0; i < model.materialCount; i++) {
+    model.materials[i].shader = color_shader;
+  }
   model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
   Vector3 mapPosition = {-8.0f, 0.0f, -8.0f};
 
@@ -197,18 +202,21 @@ void plot_surface(float *ys, int n, int m) {
 
     BeginDrawing();
     ClearBackground(BG_COLOR);
-
     BeginMode3D(camera);
-    DrawModel(model, mapPosition, 1.0f, RED);
+    DrawModel(model, mapPosition, 1.0f, WHITE);
+    // DrawModelWires(model, mapPosition, 1.0f, WHITE);
     DrawGrid(20, 1.0f);
     EndMode3D();
 
+    BeginShaderMode(color_shader);
     DrawTextureEx(texture, (Vector2){10, 10}, 0.0f, fixed_tex_scale, WHITE);
+    EndShaderMode();
 
     EndDrawing();
   }
 
   UnloadTexture(texture);
+  UnloadShader(color_shader);
   CloseWindow();
 
 }
