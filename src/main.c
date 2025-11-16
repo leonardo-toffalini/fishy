@@ -30,11 +30,11 @@ int main(void) {
   double ys[20 * 30];
   for (int i = 0; i < 20; i++) {
     for (int j = 0; j < 30; j++) {
-      ys[IDX(i, j, 20)] = i + j;
+      ys[IDX(i, j, 30)] = (double)(i + j);
     }
   }
 
-  imshow(sol, 20, 30);
+  imshow(ys, 20, 30);
 
   return 0;
 }

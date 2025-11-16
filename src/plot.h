@@ -98,39 +98,43 @@ void plot(double *xs, double *ys, int n, char *line_style, Color col) {
 
 void imshow(double *ys, int n, int m) {
   float ymin = min(ys, n * m), ymax = max(ys, n * m);
-  float pad = 20.0f;
-  float dx = (WIDTH - 2 * pad) / m;
-  float dy = (HEIGHT - 2 * pad) / n;
+  float pad = 40.0f;
+  float dx = (WIDTH - 2 * pad) / (float)m;
+  float dy = (HEIGHT - 2 * pad) / (float)n;
+  printf("dx = %f\n", dx);
+  printf("dy = %f\n", dy);
   char buf[100];
 
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
-  InitWindow(WIDTH, HEIGHT, "Raylib Scatter");
+  InitWindow(WIDTH, HEIGHT, "Raylib Heatmap");
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(BLACK);
-    DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, RAYWHITE);
-    DrawLine(pad, 0, pad, HEIGHT, RAYWHITE);
+    ClearBackground((Color){224, 217, 199});
+    DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, BLACK);
+    DrawLine(pad, 0, pad, HEIGHT, BLACK);
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < m; j++) {
         float screenx = translateX(0, m, j, pad);
         float screeny = translateY(0, n, i, pad);
-        Color c = get_color(ys[IDX(i, j, m)], ymin, ymax);
-        DrawRectangle(screenx, screeny, screenx + dx, screeny + dy, c);
+        Color c = get_color(ys[IDX(i, j, m)], (double)ymin, (double)ymax);
+        DrawRectangle(screenx, screeny - dy, dx, dy, c);
+        DrawRectangleLines(screenx, screeny - dy, dx, dy, BLACK);
+        // DrawCircle(screenx, screeny, 5, c);
       }
     }
 
     for (int j = 1; j < m + 1; j++) {
       float screenx = translateX(0, m, j, pad);
       sprintf(buf, "%d", j);
-      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, RAYWHITE);
-      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, RAYWHITE);
+      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, BLACK);
+      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, BLACK);
     }
     for (int i = 1; i < n + 1; i++) {
       float screeny = translateY(0, n, i, pad);
       sprintf(buf, "%d", i);
-      DrawText(buf, pad + 8, screeny - 6, 12, RAYWHITE);
-      DrawLine(pad - 5, screeny, pad + 5, screeny, RAYWHITE);
+      DrawText(buf, pad - 22, screeny - 6, 12, BLACK);
+      DrawLine(pad - 5, screeny, pad + 5, screeny, BLACK);
     }
 
     EndDrawing();
