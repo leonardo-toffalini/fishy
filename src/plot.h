@@ -17,23 +17,23 @@ float translateY(float c, float d, float y, float pad) {
   return HEIGHT - t;
 }
 
-double max(double *x, int n) {
-  double res = x[0];
+float max(float *x, int n) {
+  float res = x[0];
   for (int i = 0; i < n; i++)
     res = x[i] > res ? x[i] : res;
 
   return res;
 }
 
-double min(double *x, int n) {
-  double res = x[0];
+float min(float *x, int n) {
+  float res = x[0];
   for (int i = 0; i < n; i++)
     res = x[i] < res ? x[i] : res;
 
   return res;
 }
 
-void plot(double *xs, double *ys, int n, char *line_style, Color col) {
+void plot(float *xs, float *ys, int n, char *line_style, Color col) {
   float a = min(xs, n), b = max(xs, n);
   float c = min(ys, n), d = max(ys, n);
   int num_ticks = 10;
@@ -96,7 +96,7 @@ void plot(double *xs, double *ys, int n, char *line_style, Color col) {
   CloseWindow();
 }
 
-void imshow(double *ys, int n, int m) {
+void imshow(float *ys, int n, int m) {
   float ymin = min(ys, n * m), ymax = max(ys, n * m);
   float pad = 40.0f;
   float dx = (WIDTH - 2 * pad) / (float)m;
@@ -117,7 +117,7 @@ void imshow(double *ys, int n, int m) {
       for (int j = 0; j < m; j++) {
         float screenx = translateX(0, m, j, pad);
         float screeny = translateY(0, n, i, pad);
-        Color c = get_color(ys[IDX(i, j, m)], (double)ymin, (double)ymax);
+        Color c = get_color(ys[IDX(i, j, m)], (float)ymin, (float)ymax);
         DrawRectangle(screenx, screeny - dy, dx, dy, c);
         DrawRectangleLines(screenx, screeny - dy, dx, dy, BLACK);
         // DrawCircle(screenx, screeny, 5, c);
@@ -140,6 +140,10 @@ void imshow(double *ys, int n, int m) {
     EndDrawing();
   }
   CloseWindow();
+}
+
+void plot_surface(float *ys, int n, int m) {
+
 }
 
 #endif // !PLOT_H

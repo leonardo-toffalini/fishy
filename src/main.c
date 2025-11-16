@@ -4,33 +4,33 @@
 #include "fishy.h"
 #include "plot.h"
 
-double f1(double x) {
-  return 1;
+float f1(float x) {
+  return 1.0f;
 }
 
-double f2(double x) {
+float f2(float x) {
   return -exp(x);
 }
 
 int main(void) {
-  double a = 0.0, b = 1;
-  double alpha = 1.0, beta = 2.0;
+  float a = 0.0f, b = 1.0f;
+  float alpha = 1.0f, beta = 2.0f;
   int n = 20;
-  double sol[n+2];
-  double xs[n+2];
+  float sol[n+2];
+  float xs[n+2];
 
   solve_poisson1d(a, b, alpha, beta, n, f2, sol);
 
-  double h = (b - a) / (n + 1);
+  float h = (b - a) / (n + 1);
   for (int i = 0; i < n + 2; i++)
     xs[i] = a + (i + 1) * h;
 
   // plot(xs, sol, n + 2, ".-", ORANGE);
 
-  double ys[20 * 30];
+  float ys[20 * 30];
   for (int i = 0; i < 20; i++) {
     for (int j = 0; j < 30; j++) {
-      ys[IDX(i, j, 30)] = (double)(i + j);
+      ys[IDX(i, j, 30)] = (float)(i + j);
     }
   }
 
