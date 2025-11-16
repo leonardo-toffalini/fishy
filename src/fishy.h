@@ -1,9 +1,7 @@
 #ifndef FISHY_H
 #define FISHY_H
 
-#define IDX(i, j, ldm) (i * ldm + j)
-
-#include <stdio.h>
+#define IDX(i, j, ldm) ((i) * (ldm) + (j))
 
 typedef float (*RHSFunc1D)(float x);
 typedef float (*RHSFunc2D)(float x, float y);
@@ -105,7 +103,7 @@ void solve_tridiag_jacobi(TridiagMat A_h, float *rhs_values, int n, float *sol) 
 }
 
 void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol) {
-  const int MAX_ITER = 5000;
+  const int MAX_ITER = 500;
   for (int i = 0; i < n+2; i++) sol[i] = 0.0;
   sol[0] = rhs_values[0];
   sol[n+1] = rhs_values[n+1];
@@ -123,15 +121,15 @@ void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol) {
 }
 
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol) {
-  const int MAX_ITER = 5000;
+  const int MAX_ITER = 500;
   for (int k = 0; k < n * n; k++) sol[k] = 0.0f;
 
   float inv_diag = 1 / A_h.diag.diag;
 
   for (int iter = 0; iter < MAX_ITER; iter++) {
     // Gauss-Seidel over the 2D grid (lexicographic: j outer, i inner)
-    for (int j = 0; j < n; j++) {
-      for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
         int idx = IDX(i, j, n);
         float left  = (i == 0)      ? 0.0f : sol[IDX(i - 1, j, n)];
         float right = (i == n - 1)  ? 0.0f : sol[IDX(i + 1, j, n)];

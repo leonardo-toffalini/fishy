@@ -7,7 +7,7 @@
 
 #define HEIGHT 900
 #define WIDTH 1600
-#define BG_COLOR ((Color){224, 217, 199})
+#define BG_COLOR ((Color){224, 217, 199, 255})
 
 float translateX(float a, float b, float x, float pad) {
   return (x - a)/(b - a) * (WIDTH - 2 * pad) + pad;
@@ -55,9 +55,9 @@ void plot(float *xs, float *ys, int n, char *line_style, Color col) {
   InitWindow(WIDTH, HEIGHT, "Raylib Scatter");
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(BLACK);
-    DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, RAYWHITE);
-    DrawLine(pad, 0, pad, HEIGHT, RAYWHITE);
+    ClearBackground(BG_COLOR);
+    DrawLineEx((Vector2){0, HEIGHT-pad}, (Vector2){WIDTH, HEIGHT-pad}, 2, BLACK);
+    DrawLineEx((Vector2){pad, 0}, (Vector2){pad, HEIGHT}, 2, BLACK);
     for (int i = 0; i < n; i++) {
       float screenx1 = translateX(a, b, xs[i], pad);
       float screeny1 = translateY(c, d, ys[i], pad);
@@ -66,14 +66,14 @@ void plot(float *xs, float *ys, int n, char *line_style, Color col) {
         float screenx2 = translateX(a, b, xs[i+1], pad);
         float screeny2 = translateY(c, d, ys[i+1], pad);
 
-        DrawLine(screenx1, screeny1, screenx2, screeny2, col);
+        DrawLineEx((Vector2){screenx1, screeny1}, (Vector2){screenx2, screeny2}, 2, col);
       }
 
       if (strcmp(line_style, ".") == 0 || strcmp(line_style, ".-") == 0) {
         DrawCircle(
           screenx1,
           screeny1,
-          2, col
+          4, col
         );
       }
 
@@ -83,12 +83,12 @@ void plot(float *xs, float *ys, int n, char *line_style, Color col) {
       float screenx = translateX(a, b, xticks[i], pad);
       float screeny = translateY(c, d, yticks[i], pad);
       sprintf(buf, "%.2f", xticks[i]);
-      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, RAYWHITE);
-      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, RAYWHITE);
+      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, BLACK);
+      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, BLACK);
 
       sprintf(buf, "%.2f", yticks[i]);
-      DrawText(buf, pad + 8, screeny - 6, 12, RAYWHITE);
-      DrawLine(pad - 5, screeny, pad + 5, screeny, RAYWHITE);
+      DrawText(buf, pad + 8, screeny - 6, 12, BLACK);
+      DrawLine(pad - 5, screeny, pad + 5, screeny, BLACK);
 
     }
 
@@ -186,7 +186,7 @@ void plot_surface(float *ys, int n, int m) {
   float fixed_tex_scale = REF_TEXTURE_SIZE / max_dim;
 
   Texture2D texture = LoadTextureFromImage(img);
-  Mesh mesh = GenMeshHeightmap(img, (Vector3){n * mesh_scale, 16, m * mesh_scale});
+  Mesh mesh = GenMeshHeightmap(img, (Vector3){n * mesh_scale, 24, m * mesh_scale});
   Model model = LoadModelFromMesh(mesh);
   model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
   Vector3 mapPosition = {-8.0f, 0.0f, -8.0f};
