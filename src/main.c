@@ -24,6 +24,10 @@ float f5(float x, float y) {
   return sin(PI * x) * sin(PI * y);
 }
 
+float f6(float x, float y) {
+  return 2 * PI * PI * sin(PI * x) * sin(PI * y);
+}
+
 void demo_possion1d() {
   float a = 0.0f, b = 1.0f;
   float alpha = 1.0f, beta = 2.0f;
