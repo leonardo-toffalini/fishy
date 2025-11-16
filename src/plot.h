@@ -164,10 +164,10 @@ void plot_surface(float *ys, int n, int m) {
 
   InitWindow(WIDTH, HEIGHT, "Raylib Surface");
 
-  Camera camera = { 0 };
-  camera.position = (Vector3){ 18.0f, 21.0f, 18.0f };
-  camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
-  camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
+  Camera camera = {0};
+  camera.position = (Vector3){18.0f, 21.0f, 18.0f};
+  camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+  camera.up = (Vector3){0.0f, 1.0f, 0.0f};
   camera.fovy = 45.0f;
   camera.projection = CAMERA_PERSPECTIVE;
 
@@ -196,9 +196,19 @@ void plot_surface(float *ys, int n, int m) {
   model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
   Vector3 mapPosition = {-8.0f, 0.0f, -8.0f};
 
+  CameraMode camera_mode = CAMERA_ORBITAL;
+
+  DisableCursor();
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
-    UpdateCamera(&camera, CAMERA_ORBITAL);
+    if (IsKeyPressed(KEY_ENTER)) {
+      if (camera_mode == CAMERA_ORBITAL) camera_mode = CAMERA_FREE;
+      else {
+        camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+        camera_mode = CAMERA_ORBITAL;
+      }
+    }
+    UpdateCamera(&camera, camera_mode);
 
     BeginDrawing();
     ClearBackground(BG_COLOR);
