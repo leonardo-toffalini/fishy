@@ -7,6 +7,7 @@
 
 #define HEIGHT 900
 #define WIDTH 1600
+#define BG_COLOR ((Color){224, 217, 199})
 
 float translateX(float a, float b, float x, float pad) {
   return (x - a)/(b - a) * (WIDTH - 2 * pad) + pad;
@@ -110,7 +111,7 @@ void imshow(float *ys, int n, int m) {
   InitWindow(WIDTH, HEIGHT, "Raylib Heatmap");
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground((Color){224, 217, 199});
+    ClearBackground(BG_COLOR);
     DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, BLACK);
     DrawLine(pad, 0, pad, HEIGHT, BLACK);
     for (int i = 0; i < n; i++) {
@@ -142,7 +143,73 @@ void imshow(float *ys, int n, int m) {
   CloseWindow();
 }
 
+void normalize_float_array(float *ys, int n, int m) {
+  float ymin = min(ys, n * m), ymax = max(ys, n * m);
+
+  // avoid divide by 0
+  if (ymin == ymax) {
+    for (int i = 0; i < n * m; i++)
+      ys[i] /= ys[i];
+    return;
+  }
+
+  for (int i = 0; i < n * m; i++)
+    ys[i] = (ys[i] - ymin) / (ymax - ymin);
+}
+
 void plot_surface(float *ys, int n, int m) {
+  normalize_float_array(ys, n, m);
+
+  SetConfigFlags(FLAG_MSAA_4X_HINT);
+
+  InitWindow(WIDTH, HEIGHT, "Raylib Surface");
+
+  Camera camera = { 0 };
+  camera.position = (Vector3){ 18.0f, 21.0f, 18.0f };
+  camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
+  camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
+  camera.fovy = 45.0f;
+  camera.projection = CAMERA_PERSPECTIVE;
+
+  Image img = {
+    .data = ys,
+    .width = m,
+    .height = n,
+    .format = PIXELFORMAT_UNCOMPRESSED_R32,
+    .mipmaps = 1
+  };
+
+  float mesh_scale = fmin(16.0f / n, 16.0f / m);
+  const float REF_TEXTURE_SIZE = 200.0f;
+
+  float max_dim = fmax((float)n, (float)m);
+  float fixed_tex_scale = REF_TEXTURE_SIZE / max_dim;
+
+  Texture2D texture = LoadTextureFromImage(img);
+  Mesh mesh = GenMeshHeightmap(img, (Vector3){n * mesh_scale, 16, m * mesh_scale});
+  Model model = LoadModelFromMesh(mesh);
+  model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+  Vector3 mapPosition = {-8.0f, 0.0f, -8.0f};
+
+  SetTargetFPS(60);
+  while (!WindowShouldClose()) {
+    UpdateCamera(&camera, CAMERA_ORBITAL);
+
+    BeginDrawing();
+    ClearBackground(BG_COLOR);
+
+    BeginMode3D(camera);
+    DrawModel(model, mapPosition, 1.0f, RED);
+    DrawGrid(20, 1.0f);
+    EndMode3D();
+
+    DrawTextureEx(texture, (Vector2){10, 10}, 0.0f, fixed_tex_scale, WHITE);
+
+    EndDrawing();
+  }
+
+  UnloadTexture(texture);
+  CloseWindow();
 
 }
 
