@@ -179,7 +179,7 @@ void plot_surface(float *ys, int n, int m) {
     .mipmaps = 1
   };
 
-  Shader color_shader = LoadShader(NULL, "src/shaders/hot_cold.frag");
+  Shader color_shader = LoadShader(NULL, "src/shaders/viridis.frag");
 
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;
@@ -202,11 +202,9 @@ void plot_surface(float *ys, int n, int m) {
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     if (IsKeyPressed(KEY_ENTER)) {
+      camera.target = (Vector3){0.0f, 0.0f, 0.0f};
       if (camera_mode == CAMERA_ORBITAL) camera_mode = CAMERA_FREE;
-      else {
-        camera.target = (Vector3){0.0f, 0.0f, 0.0f};
-        camera_mode = CAMERA_ORBITAL;
-      }
+      else camera_mode = CAMERA_ORBITAL;
     }
     UpdateCamera(&camera, camera_mode);
 
