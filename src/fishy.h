@@ -102,6 +102,44 @@ void solve_tridiag_jacobi(TridiagMat A_h, float *rhs_values, int n, float *sol) 
   free(x_new);
 }
 
+void solve_poisson2d_9pt(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, float *sol) {
+  float h1 = (b - a) / (n + 1);
+  float h2 = (d - c) / (n + 1);
+  float *rhs_values = malloc(n * n * sizeof(float));
+
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      float x = a + (i + 1) * h1;
+      float y = c + (j + 1) * h2;
+      rhs_values[IDX(i, j, n)] = f_rhs(x, y);
+    }
+  }
+
+  float inv_h1_sq = 1 / (h1*h1);
+  float inv_h2_sq = 1 / (h2*h2);
+  TridiagMat B_tilde = {
+    .upper = 1.0f / 6.0f * inv_h1_sq,
+    .diag = -20.0f / 6.0f * inv_h1_sq,
+    .lower = 1.0f / 6.0f * inv_h1_sq,
+  };
+
+  TridiagMat I_h = {
+    .upper = 1.0f / 6.0f * inv_h2_sq,
+    .diag = 4.0f / 6.0f * inv_h2_sq,
+    .lower = 1.0f / 6.0f * inv_h2_sq,
+  };
+
+  BlockTridiagMat A_h = {
+    .upper = I_h,
+    .diag = B_tilde,
+    .lower = I_h,
+  };
+
+  solve_blocktridiag_gs(A_h, rhs_values, n, sol);
+
+  free(rhs_values);
+}
+
 void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol) {
   const int MAX_ITER = 500;
   for (int i = 0; i < n+2; i++) sol[i] = 0.0;
@@ -135,6 +173,10 @@ void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float 
         float right = (i == n - 1)  ? 0.0f : sol[IDX(i + 1, j, n)];
         float down  = (j == 0)      ? 0.0f : sol[IDX(i, j - 1, n)];
         float up    = (j == n - 1)  ? 0.0f : sol[IDX(i, j + 1, n)];
+        // float topleft  = 0.0f;
+        // float topright = 0.0f;
+        // float botleft  = 0.0f;
+        // float botright = 0.0f;
 
         sol[idx] = inv_diag * (
           rhs_values[idx]
@@ -142,6 +184,11 @@ void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float 
           - A_h.diag.upper * right
           - A_h.lower.diag * down
           - A_h.upper.diag * up
+
+          // - A_h.diag.lower * topleft
+          // - A_h.diag.upper * topright
+          // - A_h.lower.diag * botleft
+          // - A_h.upper.diag * botright
         );
       }
     }
