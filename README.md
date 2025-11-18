@@ -1,5 +1,11 @@
 # FISHPACK in C
 
+![viridis_bump](https://github.com/user-attachments/assets/a413a415-d7e9-45b8-b29c-5c9a06ee240d)
+
+![hot_cold_sinusoidal](https://github.com/user-attachments/assets/bbe26f84-5800-47d7-9fab-389d0947278b)
+
+![grayscale](https://github.com/user-attachments/assets/80c790c0-b0a7-427b-94cd-4baf98a36307)
+
 ### TODO
 - [x] implement `plot_surface` with `GenMeshHeightmap(Image heightmap, Vector3 size)`
 - [x] after `plot_surface` is availabe, see if `solve_poisson2d` works as intended
