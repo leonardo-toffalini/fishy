@@ -118,15 +118,15 @@ void solve_poisson2d_9pt(float a, float b, float c, float d, int n, RHSFunc2D f_
   float inv_h1_sq = 1 / (h1*h1);
   float inv_h2_sq = 1 / (h2*h2);
   TridiagMat B_tilde = {
-    .upper = 4.0f   / 6.0f * inv_h1_sq,
-    .diag  = -20.0f / 6.0f * inv_h1_sq,
-    .lower = 4.0f   / 6.0f * inv_h1_sq,
+    .upper = -4.0f   / 6.0f * inv_h1_sq,
+    .diag  =  20.0f / 6.0f * inv_h1_sq,
+    .lower = -4.0f   / 6.0f * inv_h1_sq,
   };
 
   TridiagMat I_h = {
-    .upper = 1.0f / 6.0f * inv_h2_sq,
-    .diag  = 4.0f / 6.0f * inv_h2_sq,
-    .lower = 1.0f / 6.0f * inv_h2_sq,
+    .upper = -1.0f / 6.0f * inv_h2_sq,
+    .diag  = -4.0f / 6.0f * inv_h2_sq,
+    .lower = -1.0f / 6.0f * inv_h2_sq,
   };
 
   BlockTridiagMat A_h = {

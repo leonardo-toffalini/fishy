@@ -5,8 +5,8 @@
 #include "colormap.h"
 #include <string.h>
 
-#define HEIGHT 900
-#define WIDTH 1600
+#define HEIGHT 720
+#define WIDTH 1280
 #define BG_COLOR ((Color){224, 217, 199, 255})
 
 float translateX(float a, float b, float x, float pad) {
