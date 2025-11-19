@@ -47,11 +47,10 @@ void demo_possion1d() {
 void demo_possion2d() {
   float a = 0.0f, b = 1.0f, c = 0.0f, d = 4.0f;
   int n = 400, m = 400;
-  float ys[n * m];
+  float ys[(n + 2) * (m + 2)];
 
-  // solve_poisson2d(a, b, c, d, n, f5, ys);
-  solve_poisson2d_9pt(a, b, c, d, n, f5, ys);
-  plot_surface(ys, n, m);
+  solve_poisson2d(a, b, c, d, n, f5, ys, NINE_POINT_STENCIL);
+  plot_surface(ys, n+2, m+2);
 }
 
 int main(void) {
