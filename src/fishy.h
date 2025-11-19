@@ -18,9 +18,40 @@ typedef struct {
   TridiagMat lower;
 } BlockTridiagMat;
 
-void solve_tridiag_jacobi(TridiagMat A_h, float *rhs_values, int n, float *sol);
 void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol);
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol);
+void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, float *sol);
+
+BlockTridiagMat block_tridiag_from_kernel(float *kernel) {
+  // kernel must be an array of size 9, with a row major matrix layour
+  // e.g. [[00, 01, 02], [10, 11, 12], [20, 21, 22]]
+
+  TridiagMat Mid = {
+    .upper = kernel[IDX(1, 2, 3)],
+    .diag  = kernel[IDX(1, 1, 3)],
+    .lower = kernel[IDX(1, 0, 3)],
+  };
+
+  TridiagMat Up = {
+    .upper = kernel[IDX(0, 2, 3)],
+    .diag  = kernel[IDX(0, 1, 3)],
+    .lower = kernel[IDX(0, 0, 3)],
+  };
+
+  TridiagMat Down = {
+    .upper = kernel[IDX(2, 2, 3)],
+    .diag  = kernel[IDX(2, 1, 3)],
+    .lower = kernel[IDX(2, 0, 3)],
+  };
+
+  BlockTridiagMat A_h = {
+    .upper = Up,
+    .diag  = Mid,
+    .lower = Down,
+  };
+
+  return A_h;
+}
 
 void solve_poisson1d(float a, float b, float alpha, float beta, int n, RHSFunc1D f_rhs, float *sol) {
   float h = (b - a) / (n + 1);
@@ -35,9 +66,9 @@ void solve_poisson1d(float a, float b, float alpha, float beta, int n, RHSFunc1D
 
   float inv_h_sq = 1 / (h*h);
   TridiagMat A_h = {
-    .upper = -1 * inv_h_sq,
-    .diag = 2 * inv_h_sq,
-    .lower = -1 * inv_h_sq,
+    .upper = -1.0f * inv_h_sq,
+    .diag  =  2.0f * inv_h_sq,
+    .lower = -1.0f * inv_h_sq,
   };
 
   solve_tridiag_gs(A_h, rhs_values, n, sol);
@@ -46,6 +77,12 @@ void solve_poisson1d(float a, float b, float alpha, float beta, int n, RHSFunc1D
 }
 
 void solve_poisson2d(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, float *sol) {
+  // solve an equation of the form: -Delta u = f
+  solve_helmholtz2d(a, b, c, d, 0.0f, n, f_rhs, sol);
+}
+
+void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, float *sol) {
+  // solve an equation of the form: -Delta u + lamda * u = f
   float h1 = (b - a) / (n + 1);
   float h2 = (d - c) / (n + 1);
   float *rhs_values = malloc(n * n * sizeof(float));
@@ -60,46 +97,17 @@ void solve_poisson2d(float a, float b, float c, float d, int n, RHSFunc2D f_rhs,
 
   float inv_h1_sq = 1 / (h1*h1);
   float inv_h2_sq = 1 / (h2*h2);
-  TridiagMat B_tilde = {
-    .upper = -1 * inv_h1_sq,
-    .diag = 2 * inv_h1_sq + 2 * inv_h2_sq,
-    .lower = -1 * inv_h1_sq,
+  float kernel[9] = {
+                 0.0f,                         -1.0f * inv_h2_sq,             0.0f,
+    -1.0f * inv_h1_sq, lam + 2.0f * inv_h1_sq + 2.0f * inv_h2_sq, -1.0f * inv_h1_sq,
+                 0.0f,                         -1.0f * inv_h2_sq,             0.0f,
   };
 
-  TridiagMat I_h = {
-    .upper = 0.0,
-    .diag = -1 * inv_h2_sq,
-    .lower = 0.0,
-  };
-
-  BlockTridiagMat A_h = {
-    .upper = I_h,
-    .diag = B_tilde,
-    .lower = I_h,
-  };
+  BlockTridiagMat A_h = block_tridiag_from_kernel(kernel);
 
   solve_blocktridiag_gs(A_h, rhs_values, n, sol);
 
   free(rhs_values);
-}
-
-void solve_tridiag_jacobi(TridiagMat A_h, float *rhs_values, int n, float *sol) {
-  const int MAX_ITER = 20;
-  float *x_new = malloc(n * sizeof(float));
-  for (int i = 0; i < n; i++) sol[i] = 0.0f;
-
-  float inv_diag = 1 / A_h.diag;
-
-  for (int iter = 0; iter < MAX_ITER; iter++) {
-    // x_(k+1) = D^-1 (b - (L + U)x_k)
-    for (int i = 0; i < n; i++) {
-      float left = (i == 0) ? 0.0f : sol[i-1];
-      float right = (i == n - 1) ? 0.0f : sol[i+1];
-      x_new[i] = inv_diag * (rhs_values[i] - A_h.lower * left - A_h.upper * right);
-    }
-    for (int i = 0; i < n; i++) sol[i] = x_new[i];
-  }
-  free(x_new);
 }
 
 void solve_poisson2d_9pt(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, float *sol) {
@@ -117,23 +125,13 @@ void solve_poisson2d_9pt(float a, float b, float c, float d, int n, RHSFunc2D f_
 
   float inv_h1_sq = 1 / (h1*h1);
   float inv_h2_sq = 1 / (h2*h2);
-  TridiagMat B_tilde = {
-    .upper = -4.0f   / 6.0f * inv_h1_sq,
-    .diag  =  20.0f / 6.0f * inv_h1_sq,
-    .lower = -4.0f   / 6.0f * inv_h1_sq,
+  float kernel[9] = {
+    -1.0f/6.0f * inv_h2_sq, -4.0f/6.0f  * inv_h2_sq, -1.0f/6.0f * inv_h2_sq,
+    -4.0f/6.0f * inv_h1_sq,  20.0f/6.0f * inv_h1_sq, -4.0f/6.0f * inv_h1_sq,
+    -1.0f/6.0f * inv_h2_sq, -4.0f/6.0f  * inv_h2_sq, -1.0f/6.0f * inv_h2_sq,
   };
 
-  TridiagMat I_h = {
-    .upper = -1.0f / 6.0f * inv_h2_sq,
-    .diag  = -4.0f / 6.0f * inv_h2_sq,
-    .lower = -1.0f / 6.0f * inv_h2_sq,
-  };
-
-  BlockTridiagMat A_h = {
-    .upper = I_h,
-    .diag = B_tilde,
-    .lower = I_h,
-  };
+  BlockTridiagMat A_h = block_tridiag_from_kernel(kernel);
 
   solve_blocktridiag_gs(A_h, rhs_values, n, sol);
 

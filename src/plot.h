@@ -205,6 +205,7 @@ void plot_surface(float *ys, int n, int m) {
       camera.target = (Vector3){0.0f, 0.0f, 0.0f};
       if (camera_mode == CAMERA_ORBITAL) camera_mode = CAMERA_FREE;
       else camera_mode = CAMERA_ORBITAL;
+      camera.target = (Vector3){0.0f, 0.0f, 0.0f};
     }
     UpdateCamera(&camera, camera_mode);
 
