@@ -85,13 +85,19 @@ void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHS
   // solve an equation of the form: -Delta u + lamda * u = f
   float h1 = (b - a) / (n + 1);
   float h2 = (d - c) / (n + 1);
-  float *rhs_values = malloc(n * n * sizeof(float));
+  float *rhs_values = malloc((n + 2) * (n + 2) * sizeof(float));
+  for (int i = 0; i < n + 2; i++) {
+    rhs_values[IDX(i,   0, n+2)] = 0.0f; // first col
+    rhs_values[IDX(i, n+1, n+2)] = 0.0f; // last col
+    rhs_values[IDX(0,   i, n+2)] = 0.0f; // first row
+    rhs_values[IDX(n+1, i, n+2)] = 0.0f; // last row
+  }
 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      float x = a + (i + 1) * h1;
-      float y = c + (j + 1) * h2;
-      rhs_values[IDX(i, j, n)] = f_rhs(x, y);
+  for (int i = 1; i < n + 1; i++) {
+    for (int j = 1; j < n + 1; j++) {
+      float x = a + i * h1;
+      float y = c + j * h2;
+      rhs_values[IDX(i, j, n+2)] = f_rhs(x, y);
     }
   }
 
@@ -159,13 +165,16 @@ void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol) {
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol) {
   const int MAX_ITER = 500;
   for (int k = 0; k < n * n; k++) sol[k] = 0.0f;
+  for (int i = 1; i < n + 1; i++)
+    for (int j = 1; j < n + 1; j++)
+      sol[IDX(i, j, n+2)] = 0.0f;
 
   float inv_diag = 1 / A_h.diag.diag;
 
   for (int iter = 0; iter < MAX_ITER; iter++) {
     // Gauss-Seidel over the 2D grid (lexicographic: j outer, i inner)
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
+    for (int i = 1; i < n+1; i++) {
+      for (int j = 1; j < n+1; j++) {
         int idx = IDX(i, j, n);
         float left     = (i == 0)      ? 0.0f : sol[IDX(i - 1, j, n)];
         float right    = (i == n - 1)  ? 0.0f : sol[IDX(i + 1, j, n)];

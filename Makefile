@@ -11,12 +11,17 @@ FRAMEWORKS = \
 						 -framework QuartzCore
 
 
-.PHONY = run, clean
+.PHONY = run, clean, debug, sanitize
 
 all: main run
 
 main:
 	CC src/main.c -o bin/main $(CFLAGS) $(LINK) $(LIBS) $(FRAMEWORKS)
+
+debug: sanitize run
+
+sanitize:
+	CC src/main.c -o bin/main $(CFLAGS) $(LINK) $(LIBS) $(FRAMEWORKS) -fsanitize=address
 
 run:
 	./bin/main
