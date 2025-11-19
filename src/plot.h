@@ -2,6 +2,7 @@
 #define PLOT_H
 
 #include "../include/raylib.h"
+#include "../include/rlgl.h"
 #include "colormap.h"
 #include <string.h>
 
@@ -163,6 +164,7 @@ void plot_surface(float *ys, int n, int m) {
   SetConfigFlags(FLAG_MSAA_4X_HINT);
 
   InitWindow(WIDTH, HEIGHT, "Raylib Surface");
+  rlDisableBackfaceCulling();
 
   Camera camera = {0};
   camera.position = (Vector3){18.0f, 21.0f, 18.0f};
@@ -194,7 +196,7 @@ void plot_surface(float *ys, int n, int m) {
     model.materials[i].shader = color_shader;
   }
   model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
-  Vector3 mapPosition = {-8.0f, 0.0f, -8.0f};
+  Vector3 mapPosition = {-8.0f, 0.01f, -8.0f};
 
   CameraMode camera_mode = CAMERA_ORBITAL;
 
