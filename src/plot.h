@@ -10,6 +10,16 @@
 #define WIDTH 1280
 #define BG_COLOR ((Color){224, 217, 199, 255})
 
+typedef enum {
+  GRAYS = 0,
+  HOTCOLD,
+  PLASMA,
+  MAGMA,
+  INFERNO,
+  VIRIDIS,
+  GNBU,
+} Colormap;
+
 float translateX(float a, float b, float x, float pad) {
   return (x - a)/(b - a) * (WIDTH - 2 * pad) + pad;
 }
@@ -158,7 +168,36 @@ void normalize_float_array(float *ys, int n, int m) {
     ys[i] = (ys[i] - ymin) / (ymax - ymin);
 }
 
-void plot_surface(float *ys, int n, int m) {
+void get_cmap(Colormap cmap, char *cmap_buf) {
+  switch (cmap) {
+    case GRAYS:
+      sprintf(cmap_buf, "src/shaders/grayscale.frag");
+      break;
+    case HOTCOLD:
+      sprintf(cmap_buf, "src/shaders/hot_cold.frag");
+      break;
+    case PLASMA:
+      sprintf(cmap_buf, "src/shaders/plasma.frag");
+      break;
+    case MAGMA:
+      sprintf(cmap_buf, "src/shaders/magma.frag");
+      break;
+    case INFERNO:
+      sprintf(cmap_buf, "src/shaders/inferno.frag");
+      break;
+    case VIRIDIS:
+      sprintf(cmap_buf, "src/shaders/viridis.frag");
+      break;
+    case GNBU:
+      sprintf(cmap_buf, "src/shaders/gnbu.frag");
+      break;
+    default:
+      sprintf(cmap_buf, "src/shaders/viridis_2.frag");
+      break;
+  }
+}
+
+void plot_surface(float *ys, int n, int m, Colormap cmap) {
   normalize_float_array(ys, n, m);
 
   SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -181,7 +220,9 @@ void plot_surface(float *ys, int n, int m) {
     .mipmaps = 1
   };
 
-  Shader color_shader = LoadShader(NULL, "src/shaders/viridis.frag");
+  char cmap_buf[100];
+  get_cmap(cmap, cmap_buf);
+  Shader color_shader = LoadShader(NULL, cmap_buf);
 
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;

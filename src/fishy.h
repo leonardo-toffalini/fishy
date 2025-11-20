@@ -6,8 +6,8 @@
 #define IDX(i, j, ldm) ((i) * (ldm) + (j))
 
 typedef enum {
-    FIVE_POINT_STENCIL = 0,
-    NINE_POINT_STENCIL,
+  FIVE_POINT_STENCIL = 0,
+  NINE_POINT_STENCIL,
 } StencilType;
 
 typedef float (*RHSFunc1D)(float x);
