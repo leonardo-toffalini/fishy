@@ -83,7 +83,7 @@ void demo_possion2d() {
   float err = max_norm_error(ys, exact_ys, (n+2) * (n+2));
   printf("max norm error = %f\n", err);
 
-  plot_surface(ys, n+2, m+2, VIRIDIS);
+  plot_surface(ys, n+2, m+2, GNBU);
   // plot_surface(exact_ys, n+2, m+2, PLASMA);
   // plot_surface(diff, n+2, m+2, VIRIDIS);
 }

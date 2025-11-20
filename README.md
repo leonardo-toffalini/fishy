@@ -15,7 +15,7 @@
 - [x] allow the viewer to look around in the surface plot
 - [x] implement viridis colorplot
 - [ ] Move out the parameters to a params struct, its getting crowded for the function signature
-- [ ] try adding lighting to the surface plotting scene to see if it makes the curves more pronounced
+- [x] try adding lighting to the surface plotting scene to see if it makes the curves more pronounced
 - [x] implement plasma colormap, and some other colormaps that look nice
 - [x] indicate what colormaps are available
 - [x] make the cmap a settable parameter of the plotter

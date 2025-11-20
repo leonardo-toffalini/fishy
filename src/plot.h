@@ -21,11 +21,11 @@ typedef enum {
 } Colormap;
 
 float translateX(float a, float b, float x, float pad) {
-  return (x - a)/(b - a) * (WIDTH - 2 * pad) + pad;
+  return (x - a) / (b - a) * (WIDTH - 2 * pad) + pad;
 }
 
 float translateY(float c, float d, float y, float pad) {
-  float t = (y - c)/(d - c) * (HEIGHT - 2 * pad) + pad;
+  float t = (y - c) / (d - c) * (HEIGHT - 2 * pad) + pad;
   return HEIGHT - t;
 }
 
@@ -56,7 +56,7 @@ void plot(float *xs, float *ys, int n, char *line_style, Color col) {
 
   float xstride = (b - a) / num_ticks;
   float ystride = (d - c) / num_ticks;
-  for (int i = 0; i < num_ticks; i ++) {
+  for (int i = 0; i < num_ticks; i++) {
     xticks[i] = a + (i + 1) * xstride;
     yticks[i] = c + (i + 1) * ystride;
   }
@@ -67,40 +67,34 @@ void plot(float *xs, float *ys, int n, char *line_style, Color col) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BG_COLOR);
-    DrawLineEx((Vector2){0, HEIGHT-pad}, (Vector2){WIDTH, HEIGHT-pad}, 2, BLACK);
+    DrawLineEx((Vector2){0, HEIGHT - pad}, (Vector2){WIDTH, HEIGHT - pad}, 2, BLACK);
     DrawLineEx((Vector2){pad, 0}, (Vector2){pad, HEIGHT}, 2, BLACK);
     for (int i = 0; i < n; i++) {
       float screenx1 = translateX(a, b, xs[i], pad);
       float screeny1 = translateY(c, d, ys[i], pad);
 
       if ((strcmp(line_style, "-") == 0 || strcmp(line_style, ".-") == 0) && i + 1 < n) {
-        float screenx2 = translateX(a, b, xs[i+1], pad);
-        float screeny2 = translateY(c, d, ys[i+1], pad);
+        float screenx2 = translateX(a, b, xs[i + 1], pad);
+        float screeny2 = translateY(c, d, ys[i + 1], pad);
 
         DrawLineEx((Vector2){screenx1, screeny1}, (Vector2){screenx2, screeny2}, 2, col);
       }
 
       if (strcmp(line_style, ".") == 0 || strcmp(line_style, ".-") == 0) {
-        DrawCircle(
-          screenx1,
-          screeny1,
-          4, col
-        );
+        DrawCircle(screenx1, screeny1, 4, col);
       }
-
     }
 
     for (int i = 0; i < num_ticks; i++) {
       float screenx = translateX(a, b, xticks[i], pad);
       float screeny = translateY(c, d, yticks[i], pad);
       sprintf(buf, "%.2f", xticks[i]);
-      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, BLACK);
-      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, BLACK);
+      DrawText(buf, screenx - 8, HEIGHT - pad + 6, 12, BLACK);
+      DrawLine(screenx, HEIGHT - pad + 5, screenx, HEIGHT - pad - 5, BLACK);
 
       sprintf(buf, "%.2f", yticks[i]);
       DrawText(buf, pad + 8, screeny - 6, 12, BLACK);
       DrawLine(pad - 5, screeny, pad + 5, screeny, BLACK);
-
     }
 
     EndDrawing();
@@ -123,7 +117,7 @@ void imshow(float *ys, int n, int m) {
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(BG_COLOR);
-    DrawLine(0, HEIGHT-pad, WIDTH, HEIGHT-pad, BLACK);
+    DrawLine(0, HEIGHT - pad, WIDTH, HEIGHT - pad, BLACK);
     DrawLine(pad, 0, pad, HEIGHT, BLACK);
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < m; j++) {
@@ -139,8 +133,8 @@ void imshow(float *ys, int n, int m) {
     for (int j = 1; j < m + 1; j++) {
       float screenx = translateX(0, m, j, pad);
       sprintf(buf, "%d", j);
-      DrawText(buf, screenx - 8, HEIGHT-pad + 6, 12, BLACK);
-      DrawLine(screenx, HEIGHT-pad + 5, screenx, HEIGHT-pad - 5, BLACK);
+      DrawText(buf, screenx - 8, HEIGHT - pad + 6, 12, BLACK);
+      DrawLine(screenx, HEIGHT - pad + 5, screenx, HEIGHT - pad - 5, BLACK);
     }
     for (int i = 1; i < n + 1; i++) {
       float screeny = translateY(0, n, i, pad);
@@ -170,30 +164,30 @@ void normalize_float_array(float *ys, int n, int m) {
 
 void get_cmap(Colormap cmap, char *cmap_buf) {
   switch (cmap) {
-    case GRAYS:
-      sprintf(cmap_buf, "src/shaders/grayscale.frag");
-      break;
-    case HOTCOLD:
-      sprintf(cmap_buf, "src/shaders/hot_cold.frag");
-      break;
-    case PLASMA:
-      sprintf(cmap_buf, "src/shaders/plasma.frag");
-      break;
-    case MAGMA:
-      sprintf(cmap_buf, "src/shaders/magma.frag");
-      break;
-    case INFERNO:
-      sprintf(cmap_buf, "src/shaders/inferno.frag");
-      break;
-    case VIRIDIS:
-      sprintf(cmap_buf, "src/shaders/viridis.frag");
-      break;
-    case GNBU:
-      sprintf(cmap_buf, "src/shaders/gnbu.frag");
-      break;
-    default:
-      sprintf(cmap_buf, "src/shaders/viridis_2.frag");
-      break;
+  case GRAYS:
+    sprintf(cmap_buf, "src/shaders/grayscale.frag");
+    break;
+  case HOTCOLD:
+    sprintf(cmap_buf, "src/shaders/hot_cold.frag");
+    break;
+  case PLASMA:
+    sprintf(cmap_buf, "src/shaders/plasma.frag");
+    break;
+  case MAGMA:
+    sprintf(cmap_buf, "src/shaders/magma.frag");
+    break;
+  case INFERNO:
+    sprintf(cmap_buf, "src/shaders/inferno.frag");
+    break;
+  case VIRIDIS:
+    sprintf(cmap_buf, "src/shaders/viridis.frag");
+    break;
+  case GNBU:
+    sprintf(cmap_buf, "src/shaders/gnbu.frag");
+    break;
+  default:
+    sprintf(cmap_buf, "src/shaders/viridis_2.frag");
+    break;
   }
 }
 
@@ -222,7 +216,11 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
 
   char cmap_buf[100];
   get_cmap(cmap, cmap_buf);
-  Shader color_shader = LoadShader(NULL, cmap_buf);
+
+  Shader color_shader = LoadShader("src/shaders/lighting.vert", cmap_buf);
+  int light_intensity_loc = GetShaderLocation(color_shader, "light_intensity");
+  float light_intensity = 0.0f;  // > 0.5 for lighting -- < 0.5 for no lighting
+  SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
 
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;
@@ -270,7 +268,6 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
   UnloadTexture(texture);
   UnloadShader(color_shader);
   CloseWindow();
-
 }
 
 #endif // !PLOT_H

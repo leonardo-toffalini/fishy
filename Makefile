@@ -17,12 +17,12 @@ FRAMEWORKS = \
 all: main run
 
 main:
-	CC src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(RELEASE_FLAGS)
+	$(CC) src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(RELEASE_FLAGS)
 
 debug: sanitize run
 
 sanitize:
-	CC src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(DEBUG_FLAGS)
+	$(CC) src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(DEBUG_FLAGS)
 
 run:
 	./bin/main

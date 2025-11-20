@@ -1,14 +1,28 @@
 #version 330
 
+in vec3 fragPosition;
 in vec2 fragTexCoord;
 in vec4 fragColor;
+in vec3 fragNormal;
 
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
+uniform float light_intensity;
 
 out vec4 finalColor;
 
 void main() {
+  // Light definition (directional light)
+  vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+  vec3 lightColor = vec3(1.0, 1.0, 1.0);
+  vec3 ambient = vec3(0.3, 0.3, 0.3);
+
+  // Diffuse shading
+  float diff = max(dot(normalize(fragNormal), lightDir), 0.0);
+  vec3 diffuse = diff * lightColor;
+
+  // Combine lighting
+  vec3 lighting = ambient + diffuse;
   const vec3 gnbu_colors[9] = vec3[9](
     vec3(247.0, 252.0, 240.0) / 255.0,
     vec3(224.0, 243.0, 219.0) / 255.0,
@@ -33,7 +47,12 @@ void main() {
 
   vec3 baseColor = gnbu_colors[index];
   vec3 nextColor = gnbu_colors[min(index + 1, lastColorIdx)];
-  finalColor = vec4(mix(baseColor, nextColor, t), texelColor.a);
+  vec3 color = mix(baseColor, nextColor, t);
+
+  if (light_intensity > 0.5)
+    finalColor = vec4(color * lighting, texelColor.a);
+  else
+    finalColor = vec4(color, texelColor.a);
 }
 
 
