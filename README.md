@@ -9,8 +9,11 @@
 ### TODO
 - [x] implement `plot_surface` with `GenMeshHeightmap(Image heightmap, Vector3 size)`
 - [x] after `plot_surface` is availabe, see if `solve_poisson2d` works as intended
-- [ ] implement inhom Dirichlet boundary for 2d Poisson
+- [x] implement inhom Dirichlet boundary for 2d Poisson
 - [x] implement 9 point stencil for 2d Poisson
 - [x] add shaders to modify the colormap of the surface plot
 - [x] allow the viewer to look around in the surface plot
 - [x] implement viridis colorplot
+- [ ] Move out the parameters to a params struct, its getting crowded for the function signature
+- [ ] try adding lighting to the surface plotting scene to see if it makes the curves more pronounced
+- [ ] implement plasma colormap, and some other colormaps that look nice

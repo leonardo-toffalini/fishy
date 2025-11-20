@@ -12,6 +12,7 @@ typedef enum {
 
 typedef float (*RHSFunc1D)(float x);
 typedef float (*RHSFunc2D)(float x, float y);
+typedef float (*BCFunc2D)(float x, float y);
 
 typedef struct {
   float upper;
@@ -27,7 +28,20 @@ typedef struct {
 
 void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol);
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol);
-void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, float *sol, StencilType stencil);
+void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil);
+
+float max_norm_error(float *ys, float *exact_ys, int n) {
+  float err = 0.0f;
+  for (int i = 0; i < n; i++)
+    err = fmax(fabs(exact_ys[i] - ys[i]), err);
+
+  return err;
+}
+
+void get_diff(float *ys, float *exact_ys, int n, float *diff) {
+  for (int i = 0; i < n; i++)
+    diff[i] = exact_ys[i] - ys[i];
+}
 
 BlockTridiagMat block_tridiag_from_kernel(float *kernel) {
   // kernel must be an array of size 9, with a row major matrix layour
@@ -102,21 +116,23 @@ void solve_poisson1d(float a, float b, float alpha, float beta, int n, RHSFunc1D
   free(rhs_values);
 }
 
-void solve_poisson2d(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, float *sol, StencilType stencil) {
+void solve_poisson2d(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil) {
   // solve an equation of the form: -Delta u = f
-  solve_helmholtz2d(a, b, c, d, 0.0f, n, f_rhs, sol, stencil);
+  solve_helmholtz2d(a, b, c, d, 0.0f, n, f_rhs, bc_func, sol, stencil);
 }
 
-void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, float *sol, StencilType stencil) {
+void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil) {
   // solve an equation of the form: -Delta u + lamda * u = f
   float h1 = (b - a) / (n + 1);
   float h2 = (d - c) / (n + 1);
   float *rhs_values = malloc((n + 2) * (n + 2) * sizeof(float));
   for (int i = 0; i < n + 2; i++) {
-    rhs_values[IDX(i,   0, n+2)] = 0.0f; // first col
-    rhs_values[IDX(i, n+1, n+2)] = 0.0f; // last col
-    rhs_values[IDX(0,   i, n+2)] = 0.0f; // first row
-    rhs_values[IDX(n+1, i, n+2)] = 0.0f; // last row
+    float x = a + i * h1;
+    float y = c + i * h2;
+    rhs_values[IDX(i,   0, n+2)] = bc_func(x, c); // y=c (first col/bottom)
+    rhs_values[IDX(i, n+1, n+2)] = bc_func(x, d); // y=d (last col/top)
+    rhs_values[IDX(0,   i, n+2)] = bc_func(a, y); // x=a (first row/left)
+    rhs_values[IDX(n+1, i, n+2)] = bc_func(b, y); // x=b (last row/right)
   }
 
   for (int i = 1; i < n + 1; i++) {
@@ -155,8 +171,14 @@ void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol) {
 }
 
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol) {
-  const int MAX_ITER = 500;
+  const int MAX_ITER = 5000;
   for (int k = 0; k < (n + 2) * (n + 2); k++) sol[k] = 0.0f;
+  for (int i = 0; i < n + 2; i++) {
+    sol[IDX(i,   0, n+2)] = rhs_values[IDX(i,   0, n+2)];
+    sol[IDX(i, n+1, n+2)] = rhs_values[IDX(i, n+1, n+2)];
+    sol[IDX(0,   i, n+2)] = rhs_values[IDX(0,   i, n+2)];
+    sol[IDX(n+1, i, n+2)] = rhs_values[IDX(n+1, i, n+2)];
+  }
 
   float inv_diag = 1 / A_h.diag.diag;
 
@@ -164,14 +186,14 @@ void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float 
     for (int i = 1; i < n + 1; i++) {
       for (int j = 1; j < n + 1; j++) {
         int idx = IDX(i, j, n + 2);
-        float left     = (i == 0) ? 0.0f : sol[IDX(i - 1, j, n+2)];
-        float right    = (i == n) ? 0.0f : sol[IDX(i + 1, j, n+2)];
-        float down     = (j == 0) ? 0.0f : sol[IDX(i, j - 1, n+2)];
-        float up       = (j == n) ? 0.0f : sol[IDX(i, j + 1, n+2)];
-        float topleft  = (i == 0 || j == 0) ? 0.0f : sol[IDX(i-1, j-1, n+2)];
-        float topright = (i == 0 || j == n) ? 0.0f : sol[IDX(i-1, j+1, n+2)];
-        float botleft  = (i == n || j == 0) ? 0.0f : sol[IDX(i+1, j-1, n+2)];
-        float botright = (i == n || j == n) ? 0.0f : sol[IDX(i+1, j+1, n+2)];
+        float left     = sol[IDX(i - 1, j, n+2)];
+        float right    = sol[IDX(i + 1, j, n+2)];
+        float down     = sol[IDX(i, j - 1, n+2)];
+        float up       = sol[IDX(i, j + 1, n+2)];
+        float topleft  = sol[IDX(i-1, j-1, n+2)];
+        float topright = sol[IDX(i-1, j+1, n+2)];
+        float botleft  = sol[IDX(i+1, j-1, n+2)];
+        float botright = sol[IDX(i+1, j+1, n+2)];
 
         sol[idx] = inv_diag * (
           rhs_values[idx]
