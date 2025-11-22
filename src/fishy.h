@@ -1,8 +1,6 @@
 #ifndef FISHY_H
 #define FISHY_H
 
-#include <assert.h>
-
 #define IDX(i, j, ldm) ((i) * (ldm) + (j))
 
 typedef enum {
@@ -26,9 +24,18 @@ typedef struct {
   TridiagMat lower;
 } BlockTridiagMat;
 
+typedef struct {
+  float a, b, c, d, lam;
+  int n;
+  RHSFunc2D f_rhs;
+  BCFunc2D bc_func;
+  float *sol;
+  StencilType stencil;
+} FishyParams;
+
 void solve_tridiag_gs(TridiagMat A_h, float *rhs_values, int n, float *sol);
 void solve_blocktridiag_gs(BlockTridiagMat A_h, float *rhs_values, int n, float *sol);
-void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil);
+void solve_helmholtz2d(FishyParams params);
 
 float max_norm_error(float *ys, float *exact_ys, int n) {
   float err = 0.0f;
@@ -118,36 +125,38 @@ void solve_poisson1d(float a, float b, float alpha, float beta, int n, RHSFunc1D
 
 void solve_poisson2d(float a, float b, float c, float d, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil) {
   // solve an equation of the form: -Delta u = f
-  solve_helmholtz2d(a, b, c, d, 0.0f, n, f_rhs, bc_func, sol, stencil);
+  solve_helmholtz2d((FishyParams){a, b, c, d, 0.0f, n, f_rhs, bc_func, sol, stencil});
 }
 
-void solve_helmholtz2d(float a, float b, float c, float d, float lam, int n, RHSFunc2D f_rhs, BCFunc2D bc_func, float *sol, StencilType stencil) {
+void solve_helmholtz2d(FishyParams params) {
   // solve an equation of the form: -Delta u + lamda * u = f
+  float a = params.a; float b = params.b; float c = params.c; float d = params.d;
+  int n = params.n;
   float h1 = (b - a) / (n + 1);
   float h2 = (d - c) / (n + 1);
   float *rhs_values = malloc((n + 2) * (n + 2) * sizeof(float));
   for (int i = 0; i < n + 2; i++) {
     float x = a + i * h1;
     float y = c + i * h2;
-    rhs_values[IDX(i,   0, n+2)] = bc_func(x, c); // y=c (first col/bottom)
-    rhs_values[IDX(i, n+1, n+2)] = bc_func(x, d); // y=d (last col/top)
-    rhs_values[IDX(0,   i, n+2)] = bc_func(a, y); // x=a (first row/left)
-    rhs_values[IDX(n+1, i, n+2)] = bc_func(b, y); // x=b (last row/right)
+    rhs_values[IDX(i,   0, n+2)] = params.bc_func(x, c); // y=c (first col/bottom)
+    rhs_values[IDX(i, n+1, n+2)] = params.bc_func(x, d); // y=d (last col/top)
+    rhs_values[IDX(0,   i, n+2)] = params.bc_func(a, y); // x=a (first row/left)
+    rhs_values[IDX(n+1, i, n+2)] = params.bc_func(b, y); // x=b (last row/right)
   }
 
   for (int i = 1; i < n + 1; i++) {
     for (int j = 1; j < n + 1; j++) {
       float x = a + i * h1;
       float y = c + j * h2;
-      rhs_values[IDX(i, j, n+2)] = f_rhs(x, y);
+      rhs_values[IDX(i, j, n+2)] = params.f_rhs(x, y);
     }
   }
 
   float kernel[9];
-  get_kernel_for_stencil(stencil, h1, h2, lam, kernel);
+  get_kernel_for_stencil(params.stencil, h1, h2, params.lam, kernel);
   BlockTridiagMat A_h = block_tridiag_from_kernel(kernel);
 
-  solve_blocktridiag_gs(A_h, rhs_values, n, sol);
+  solve_blocktridiag_gs(A_h, rhs_values, n, params.sol);
 
   free(rhs_values);
 }

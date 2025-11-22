@@ -12,17 +12,15 @@ uniform float light_intensity;
 out vec4 finalColor;
 
 void main() {
-  // Light definition (directional light)
   vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
   vec3 lightColor = vec3(1.0, 1.0, 1.0);
   vec3 ambient = vec3(0.3, 0.3, 0.3);
 
-  // Diffuse shading
   float diff = max(dot(normalize(fragNormal), lightDir), 0.0);
   vec3 diffuse = diff * lightColor;
 
-  // Combine lighting
   vec3 lighting = ambient + diffuse;
+
   const vec3 viridis_colors[256] = vec3[256](
     vec3(0.267004, 0.004874, 0.329415),
     vec3(0.268510, 0.009605, 0.335427),

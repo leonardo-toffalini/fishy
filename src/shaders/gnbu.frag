@@ -12,17 +12,15 @@ uniform float light_intensity;
 out vec4 finalColor;
 
 void main() {
-  // Light definition (directional light)
   vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
   vec3 lightColor = vec3(1.0, 1.0, 1.0);
   vec3 ambient = vec3(0.3, 0.3, 0.3);
 
-  // Diffuse shading
   float diff = max(dot(normalize(fragNormal), lightDir), 0.0);
   vec3 diffuse = diff * lightColor;
 
-  // Combine lighting
   vec3 lighting = ambient + diffuse;
+
   const vec3 gnbu_colors[9] = vec3[9](
     vec3(247.0, 252.0, 240.0) / 255.0,
     vec3(224.0, 243.0, 219.0) / 255.0,
