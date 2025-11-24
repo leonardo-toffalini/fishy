@@ -19,3 +19,6 @@
 - [x] implement plasma colormap, and some other colormaps that look nice
 - [x] indicate what colormaps are available
 - [x] make the cmap a settable parameter of the plotter
+- [x] refactor the colormap code to have only one fragment shader and read in the colormap as a uniform array of vec3
+- [x] move the colormaps into separate headers
+- [ ] make the lighting smoother on the surface plot by interpolating the surface normals on the triangle faces

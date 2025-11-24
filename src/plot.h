@@ -10,16 +10,6 @@
 #define WIDTH 1280
 #define BG_COLOR ((Color){224, 217, 199, 255})
 
-typedef enum {
-  GRAYS = 0,
-  HOTCOLD,
-  PLASMA,
-  MAGMA,
-  INFERNO,
-  VIRIDIS,
-  GNBU,
-} Colormap;
-
 float translateX(float a, float b, float x, float pad) {
   return (x - a) / (b - a) * (WIDTH - 2 * pad) + pad;
 }
@@ -123,8 +113,8 @@ void imshow(float *ys, int n, int m) {
       for (int j = 0; j < m; j++) {
         float screenx = translateX(0, m, j, pad);
         float screeny = translateY(0, n, i, pad);
-        Color c = get_color(ys[IDX(i, j, m)], (float)ymin, (float)ymax);
-        DrawRectangle(screenx, screeny - dy, dx, dy, c);
+        vec3 c = get_color(ys[IDX(i, j, m)], (float)ymin, (float)ymax);
+        DrawRectangle(screenx, screeny - dy, dx, dy, (Color){255.0 * c.r, 255.0 * c.g, 255.0 * c.b, 255});
         DrawRectangleLines(screenx, screeny - dy, dx, dy, BLACK);
         // DrawCircle(screenx, screeny, 5, c);
       }
@@ -162,35 +152,6 @@ void normalize_float_array(float *ys, int n, int m) {
     ys[i] = (ys[i] - ymin) / (ymax - ymin);
 }
 
-void get_cmap(Colormap cmap, char *cmap_buf) {
-  switch (cmap) {
-  case GRAYS:
-    sprintf(cmap_buf, "src/shaders/grayscale.frag");
-    break;
-  case HOTCOLD:
-    sprintf(cmap_buf, "src/shaders/hot_cold.frag");
-    break;
-  case PLASMA:
-    sprintf(cmap_buf, "src/shaders/plasma.frag");
-    break;
-  case MAGMA:
-    sprintf(cmap_buf, "src/shaders/magma.frag");
-    break;
-  case INFERNO:
-    sprintf(cmap_buf, "src/shaders/inferno.frag");
-    break;
-  case VIRIDIS:
-    sprintf(cmap_buf, "src/shaders/viridis.frag");
-    break;
-  case GNBU:
-    sprintf(cmap_buf, "src/shaders/gnbu.frag");
-    break;
-  default:
-    sprintf(cmap_buf, "src/shaders/viridis_2.frag");
-    break;
-  }
-}
-
 void plot_surface(float *ys, int n, int m, Colormap cmap) {
   normalize_float_array(ys, n, m);
 
@@ -214,13 +175,22 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
     .mipmaps = 1
   };
 
-  char cmap_buf[100];
-  get_cmap(cmap, cmap_buf);
-
-  Shader color_shader = LoadShader("src/shaders/lighting.vert", cmap_buf);
+  Shader color_shader = LoadShader("src/shaders/main.vert", "src/shaders/main.frag");
   int light_intensity_loc = GetShaderLocation(color_shader, "light_intensity");
   float light_intensity = 0.0f;  // > 0.5 for lighting -- < 0.5 for no lighting
   SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
+
+  // set up the colormap for the shader
+  int colormap_loc = GetShaderLocation(color_shader, "colormap");
+  int colormap_size_loc = GetShaderLocation(color_shader, "colormap_size");
+  int reversed_loc = GetShaderLocation(color_shader, "reversed");
+  const vec3 *colormap;
+  int colormap_size;
+  int reversed;
+  get_colormap(cmap, &colormap, &colormap_size, &reversed);
+  SetShaderValueV(color_shader, colormap_loc, colormap, SHADER_UNIFORM_VEC3, colormap_size);
+  SetShaderValue(color_shader, colormap_size_loc, &colormap_size, SHADER_UNIFORM_INT);
+  SetShaderValue(color_shader, reversed_loc, &reversed, SHADER_UNIFORM_INT);
 
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;

@@ -1,11 +1,33 @@
-Color hotcold[256] ;
+#ifndef COLORMAP_H
+#define COLORMAP_H
+
+typedef enum {
+  GRAYS = 0,
+  HOTCOLD,
+  PLASMA,
+  MAGMA,
+  INFERNO,
+  VIRIDIS,
+  GNBU,
+  APPLE,
+  FAKE_PARULA,
+} Colormap;
 
 typedef struct {
   float r, g, b;
-} FloatColor;
+} vec3;
 
-Color get_color(double v, double vmin, double vmax) {
-  FloatColor c = {1.0, 1.0, 1.0};
+#include "colormaps/gnbu.h"
+#include "colormaps/inferno.h"
+#include "colormaps/magma.h"
+#include "colormaps/plasma.h"
+#include "colormaps/viridis.h"
+#include "colormaps/hot_cold.h"
+#include "colormaps/apple.h"
+#include "colormaps/fake_parula.h"
+
+vec3 get_color(double v, double vmin, double vmax) {
+  vec3 c = {1.0, 1.0, 1.0};
   double dv = vmax - vmin;
   v = fmin(fmax(v, vmin), vmax);
 
@@ -23,12 +45,63 @@ Color get_color(double v, double vmin, double vmax) {
      c.b = 0;
   }
 
-  Color res = {0};
-  res.r = 255.0 * c.r;
-  res.g = 255.0 * c.g;
-  res.b = 255.0 * c.b;
-  res.a = 255;
-
-  return res;
+  return c;
 }
 
+const vec3 grayscale_colors[2] = {
+  (vec3){0.0f, 0.0f, 0.0f},
+  (vec3){1.0f, 1.0f, 1.0f},
+};
+
+void get_colormap(Colormap cmap, const vec3 **colormap, int *colormap_size, int *reversed) {
+  switch (cmap) {
+  case GNBU:
+    *colormap = gnbu_colors;
+    *colormap_size = 9;
+    *reversed = 1;
+    break;
+  case MAGMA:
+    *colormap = magma_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  case PLASMA:
+    *colormap = plasma_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  case INFERNO:
+    *colormap = inferno_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  case HOTCOLD:
+    *colormap = hot_cold_colors;
+    *colormap_size = 5;
+    *reversed = 0;
+    break;
+  case GRAYS:
+    *colormap = grayscale_colors;
+    *colormap_size = 2;
+    *reversed = 0;
+    break;
+  case APPLE:
+    *colormap = apple_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  case FAKE_PARULA:
+    *colormap = fake_parula_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  default:
+  case VIRIDIS:
+    *colormap = viridis_colors;
+    *colormap_size = 256;
+    *reversed = 0;
+    break;
+  }
+}
+
+#endif // !COLORMAP_H

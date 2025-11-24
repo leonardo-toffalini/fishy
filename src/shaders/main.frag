@@ -8,6 +8,9 @@ in vec3 fragNormal;
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
 uniform float light_intensity;
+uniform vec3 colormap[256];
+uniform int colormap_size;
+uniform int reversed;
 
 out vec4 finalColor;
 
@@ -21,30 +24,21 @@ void main() {
 
   vec3 lighting = ambient + diffuse;
 
-  const vec3 gnbu_colors[9] = vec3[9](
-    vec3(247.0, 252.0, 240.0) / 255.0,
-    vec3(224.0, 243.0, 219.0) / 255.0,
-    vec3(204.0, 235.0, 197.0) / 255.0,
-    vec3(168.0, 221.0, 181.0) / 255.0,
-    vec3(123.0, 204.0, 196.0) / 255.0,
-    vec3( 78.0, 179.0, 211.0) / 255.0,
-    vec3( 43.0, 140.0, 190.0) / 255.0,
-    vec3(  8.0, 104.0, 172.0) / 255.0,
-    vec3(  8.0,  64.0, 129.0) / 255.0
-  );
-
   vec4 texelColor = texture(texture0, fragTexCoord);
-  float val = 1 - clamp(texelColor.r, 0.0, 1.0);
+  float val;
+  if (reversed == 0)
+    val = clamp(texelColor.r, 0.0, 1.0);
+  else
+    val = 1 - clamp(texelColor.r, 0.0, 1.0);
 
-  const int colorCount = 9;
-  const int lastColorIdx = colorCount - 1;
-  const float segments = float(lastColorIdx);
+  int last_color_idx = colormap_size - 1;
+  float segments = float(last_color_idx);
   float scaled = val * segments;
   int index = int(floor(scaled));
   float t = fract(scaled);
 
-  vec3 baseColor = gnbu_colors[index];
-  vec3 nextColor = gnbu_colors[min(index + 1, lastColorIdx)];
+  vec3 baseColor = colormap[index];
+  vec3 nextColor = colormap[min(index + 1, last_color_idx)];
   vec3 color = mix(baseColor, nextColor, t);
 
   if (light_intensity > 0.5)
