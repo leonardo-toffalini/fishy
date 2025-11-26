@@ -177,13 +177,15 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
 
   Shader color_shader = LoadShader("src/shaders/main.vert", "src/shaders/main.frag");
   int light_intensity_loc = GetShaderLocation(color_shader, "light_intensity");
-  float light_intensity = 0.0f;  // > 0.5 for lighting -- < 0.5 for no lighting
+  float light_intensity = 1.0f;  // > 0.5 for lighting -- < 0.5 for no lighting
   SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
 
   // set up the colormap for the shader
   int colormap_loc = GetShaderLocation(color_shader, "colormap");
   int colormap_size_loc = GetShaderLocation(color_shader, "colormap_size");
   int reversed_loc = GetShaderLocation(color_shader, "reversed");
+  int light_pos_loc = GetShaderLocation(color_shader, "light_pos");
+  Vector3 light_pos = (Vector3){0.0f, 13.0f, 0.0f};
   const vec3 *colormap;
   int colormap_size;
   int reversed;
@@ -191,6 +193,7 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
   SetShaderValueV(color_shader, colormap_loc, colormap, SHADER_UNIFORM_VEC3, colormap_size);
   SetShaderValue(color_shader, colormap_size_loc, &colormap_size, SHADER_UNIFORM_INT);
   SetShaderValue(color_shader, reversed_loc, &reversed, SHADER_UNIFORM_INT);
+  SetShaderValue(color_shader, light_pos_loc, &light_pos, SHADER_UNIFORM_VEC3);
 
   float mesh_scale = fmin(16.0f / n, 16.0f / m);
   const float REF_TEXTURE_SIZE = 200.0f;
@@ -223,16 +226,26 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
     BeginDrawing();
     ClearBackground(BG_COLOR);
     BeginMode3D(camera);
+    light_intensity = 1.0f;
+    SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
     DrawModel(model, mapPosition, 1.0f, WHITE);
     // DrawModelWires(model, mapPosition, 1.0f, WHITE);
     DrawGrid(20, 1.0f);
+    DrawSphere(light_pos, 0.5f, WHITE);
     EndMode3D();
 
     BeginShaderMode(color_shader);
+    light_intensity = 0.0f;
+    SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
     DrawTextureEx(texture, (Vector2){10, 10}, 0.0f, fixed_tex_scale, WHITE);
     EndShaderMode();
 
     EndDrawing();
+
+    // update light position
+    light_pos.x = sin(GetTime() * 0.5f) * 10.0f;
+    light_pos.z = cos(GetTime() * 0.5f) * 10.0f;
+    SetShaderValue(color_shader, light_pos_loc, &light_pos, SHADER_UNIFORM_VEC3);
   }
 
   UnloadTexture(texture);

@@ -8,6 +8,7 @@ in vec3 fragNormal;
 uniform sampler2D texture0;
 uniform vec4 colDiffuse;
 uniform float light_intensity;
+uniform vec3 light_pos;
 uniform vec3 colormap[256];
 uniform int colormap_size;
 uniform int reversed;
@@ -15,7 +16,7 @@ uniform int reversed;
 out vec4 finalColor;
 
 void main() {
-  vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+  vec3 lightDir = normalize(light_pos - fragPosition);
   vec3 lightColor = vec3(1.0, 1.0, 1.0);
   vec3 ambient = vec3(0.3, 0.3, 0.3);
 
