@@ -1,8 +1,16 @@
 CC = clang
 DEBUG_FLAGS = -Wextra -Wall -fsanitize=address -g
 RELEASE_FLAGS = -O3
-LINK = -L$(HOME)/Downloads/thirdparty/raylib-5.5_macos/lib \
-			 -L$(HOME)/Downloads/thirdparty/glfw-3.4.bin.MACOS/lib-arm64
+
+THIRDPARTY_DIR = $(CURDIR)/thirdparty
+RAYLIB_DIR = $(THIRDPARTY_DIR)/raylib-5.5_macos
+GLFW_DIR = $(THIRDPARTY_DIR)/glfw-3.4_macos
+RAYLIB_LIB_DIR = $(RAYLIB_DIR)/lib
+GLFW_LIB_DIR = $(GLFW_DIR)/lib-arm64
+
+LINK = -L$(RAYLIB_LIB_DIR) \
+			 -L$(GLFW_LIB_DIR) \
+			 -Wl,-rpath,$(RAYLIB_LIB_DIR)
 LIBS = -lraylib -lglfw3
 FRAMEWORKS = \
 						 -framework Cocoa \
@@ -12,16 +20,18 @@ FRAMEWORKS = \
 						 -framework QuartzCore
 
 
-.PHONY = run, clean, debug, sanitize
+.PHONY = all main run clean debug sanitize check-deps
 
 all: main run
 
-main:
+main: check-deps
+	mkdir -p bin
 	$(CC) src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(RELEASE_FLAGS)
 
 debug: sanitize run
 
-sanitize:
+sanitize: check-deps
+	mkdir -p bin
 	$(CC) src/main.c -o bin/main $(LINK) $(LIBS) $(FRAMEWORKS) $(DEBUG_FLAGS)
 
 run:
@@ -29,4 +39,8 @@ run:
 
 clean:
 	rm bin/*
+
+check-deps:
+	@test -d "$(RAYLIB_LIB_DIR)" || (echo "Missing raylib in $(RAYLIB_DIR). Run ./setup_macos.sh first." && exit 1)
+	@test -d "$(GLFW_LIB_DIR)" || (echo "Missing glfw in $(GLFW_DIR). Run ./setup_macos.sh first." && exit 1)
 

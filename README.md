@@ -1,5 +1,13 @@
 # FISHPACK in C
 
+# Quickstart
+Currently, only macos is supported, but if you have raylib and glfw locally installed and can modify the Makefile to point to the correct thirdparty library you can make it work on any platform.
+
+## Build on macOS
+Run `./setup_macos.sh` to download local copies of `raylib-5.5_macos` and `glfw-3.4_macos` into `thirdparty/`.
+
+After having downloaded the required third party libraries, you can build and run the code with `make`.
+
 ![viridis_bump](https://github.com/user-attachments/assets/a413a415-d7e9-45b8-b29c-5c9a06ee240d)
 
 ![hot_cold_sinusoidal](https://github.com/user-attachments/assets/bbe26f84-5800-47d7-9fab-389d0947278b)
