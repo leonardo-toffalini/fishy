@@ -204,13 +204,16 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
   Texture2D texture = LoadTextureFromImage(img);
   Mesh mesh = GenMeshHeightmap(img, (Vector3){n * mesh_scale, 24, m * mesh_scale});
   Model model = LoadModelFromMesh(mesh);
+  Material wire_material = LoadMaterialDefault();
   for (int i = 0; i < model.materialCount; i++) {
     model.materials[i].shader = color_shader;
   }
   model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
   Vector3 mapPosition = {-8.0f, 0.01f, -8.0f};
+  Vector3 wirePosition = {-8.0f, 0.01f, -8.0f};
 
   CameraMode camera_mode = CAMERA_ORBITAL;
+  bool show_wires = false;
 
   DisableCursor();
   SetTargetFPS(60);
@@ -221,6 +224,9 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
       else camera_mode = CAMERA_ORBITAL;
       camera.target = (Vector3){0.0f, 0.0f, 0.0f};
     }
+    if (IsKeyPressed(KEY_ZERO)) {
+      show_wires = !show_wires;
+    }
     UpdateCamera(&camera, camera_mode);
 
     BeginDrawing();
@@ -228,8 +234,19 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
     BeginMode3D(camera);
     light_intensity = 1.0f;
     SetShaderValue(color_shader, light_intensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT);
+    for (int i = 0; i < model.materialCount; i++) {
+      model.materials[i].shader = color_shader;
+    }
     DrawModel(model, mapPosition, 1.0f, WHITE);
-    // DrawModelWires(model, mapPosition, 1.0f, WHITE);
+
+    if (show_wires) {
+      for (int i = 0; i < model.materialCount; i++) {
+        model.materials[i].shader = wire_material.shader;
+      }
+      rlSetLineWidth(0.5f);
+      DrawModelWires(model, wirePosition, 1.0f, BLACK);
+      rlSetLineWidth(1.0f);
+    }
     DrawGrid(20, 1.0f);
     DrawSphere(light_pos, 0.5f, WHITE);
     EndMode3D();
@@ -249,6 +266,7 @@ void plot_surface(float *ys, int n, int m, Colormap cmap) {
   }
 
   UnloadTexture(texture);
+  UnloadMaterial(wire_material);
   UnloadShader(color_shader);
   CloseWindow();
 }

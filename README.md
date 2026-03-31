@@ -14,6 +14,11 @@ After having downloaded the required third party libraries, you can build and ru
 
 ![grayscale](https://github.com/user-attachments/assets/80c790c0-b0a7-427b-94cd-4baf98a36307)
 
+## Options in the rendering
+When the rendiring is running you have the following options
+- Press `Enter` to toggle orbiting.
+- Press the `0` key to toggle the wirefarme of the mesh.
+
 ### TODO
 - [x] implement `plot_surface` with `GenMeshHeightmap(Image heightmap, Vector3 size)`
 - [x] after `plot_surface` is availabe, see if `solve_poisson2d` works as intended
